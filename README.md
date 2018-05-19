@@ -46,6 +46,7 @@ buner new . -B --webpack=vue --skip-test
 see:https://qiita.com/naoki85/items/51a8b0f2cbf949d08b11
 
 * .gitignoreに`/vendor`を追加する
+* .gitignoreに`/public/packs`を追加する
 * この辺で一度git commitしておく
 
 ## 作りたいアプリケーションのイメージを考える
@@ -184,6 +185,21 @@ buner destroy scaffold_controller api::task
   * _task.json.jbuilderに出力項目として追加する必要があった
 * [想定外2]POSTしたのに、タイトルなどが登録されていない
   * TasksControllerにpermitする処理を追加する必要があった
+
+## ステップ8: タスクを登録・更新・削除する画面を作成しましょう
+
+### ルートアクセス時の画面を作成する
+
+* 基本的に、Railsで用意するビューファイルは1つのみで、そこを差し替えていきます。  
+まずは、以下のファイルを作成、編集します。(内容はソース参照)
+
+  * app/controllers/home_controller.rb
+  * config/routes.rb
+  * app/views/home/index.html.erb
+
+javascript_pack_tagを使用することで、app/javascript/packs以下にあるJSファイルを探してくれます。  
+インストール時にhello_vue.jsというファイルが生成されているので、これをindexにて読み込ませます。  
+これで`rails s`して、「Hello Vue!」と表示されれば大丈夫です。
 
 # Tips
 ## rails new の途中でエラーが発生しやり直す場合
