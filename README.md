@@ -199,6 +199,7 @@ buner destroy scaffold_controller api::task
 
 #### 設定手順
 
+* 事前に次のステップの「ルートアクセス時の画面を作成する」を実行する
 * Gemfileに`gem 'foreman'`を追加する(Developmentグループに)
 * `bundle install`を実行
 * bin/serverというファイルを作成する
@@ -220,7 +221,15 @@ webpacker: ./bin/webpack-dev-server
 * ポートが5000に変わるので、`http://localhost:5000`にアクセスすると画面が表示されるはず
 * その状態で、Vueファイルを変更して再度画面にアクセスすると、変更が反映されているはず(画面開いていればリロードすらせずに反映される)
 
+
 ## ステップ8: タスクを登録・更新・削除する画面を作成しましょう
+
+### 仕組みの部分メモ
+
+* Rails(vuejs版)では、`hello_vue.js`というファイルが存在する
+* 上記ファイルでは、Vueインスタンスの生成や<app>との紐付けが設定されている
+* ↓のルートアクセス時の画面作成では、index.html.erbがロードされたら、hello_vue.jsをロードするようにしている
+* 実際の開発では、hello_vue.jsという名前は使われないので、同様の物を作り直すイメージ
 
 ### ルートアクセス時の画面を作成する
 
@@ -233,7 +242,66 @@ webpacker: ./bin/webpack-dev-server
 
 javascript_pack_tagを使用することで、app/javascript/packs以下にあるJSファイルを探してくれます。  
 インストール時にhello_vue.jsというファイルが生成されているので、これをindexにて読み込ませます。  
-これで`rails s`して、「Hello Vue!」と表示されれば大丈夫です。
+これで`bin/server`して、「Hello Vue!」と表示されれば大丈夫です。
+
+
+### コンポーネントを使ってヘッダを作成する
+
+* `index.html.erb`を編集する
+
+```
+<div id="app">
+  <navbar></navbar>
+</div>
+
+<%= javascript_pack_tag 'taskul' %>
+```
+
+* `mv app/javascript/packs/hello_vue.js app/javascript/packs/taskul.js`でリネーム
+* 移動したファイルを以下の内容に編集し、Vueインスタンス作成し、index.html.erb内の<div id="app">にマウントされる
+
+```
+import Vue from 'vue/dist/vue.esm.js'
+
+var app = new Vue({
+  el: '#app',
+});
+```
+* `mkdir -p app/javascript/packs/components` でコンポーネント用のディレクトリを作成
+* 上記ディレクトリ内に `header.vue` を作成し、ヘッダ用のコンポーネントを作成する
+* 内容は本体参照だが、ここでは、ロジックは不要なので、<template>でHTMLだけを記載する(初回はhogeとかでOK。)
+* これを、`taskul.js`に登録(コンポーネントとして認識)させる(navbarという名前＝タグ名で登録)
+
+```
+import Vue from 'vue/dist/vue.esm.js'
++ import Header from './components/header.vue'
+
+var app = new Vue({
+   el: '#app',
++  components: {
++    'navbar': Header,
++  }
+ });
+```
+
+* サーバを再起動して、`http://localhost:5000`にアクセスするとヘッダだけが表示されるはず
+* この状態で、`header.vue`を修正していくと、即反映されるので開発が捗る
+
+### CSSフレームワークを導入しましょう
+
+* 後のタイミングでも良いのだが、導入はここでやっといて、細かくデザインを凝るのはあとやる
+* 今回は一番スタンダード(ちょっと下火っぽいけど)なbootstrapを使ってみる
+* Gemfileに以下を追記して、`bundle install`  なお、bootstrapの記載がある場合は書き換える
+
+```
+gem 'bootstrap', '~> 4.1.1'
+gem 'jquery-rails'
+```
+
+
+### ひとまず一覧画面の枠を作成する（まだServerから情報はもらわない）
+
+*
 
 # Tips
 ## rails new の途中でエラーが発生しやり直す場合
