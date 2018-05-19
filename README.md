@@ -89,6 +89,48 @@ see:https://qiita.com/naoki85/items/51a8b0f2cbf949d08b11
     * ロール
   * ロール
 
+
+## #3　自分のタスクを簡単に登録したい
+
+* DBの作成
+
+```
+buner db:crete
+```
+
+* モデルの作成&DBマイグレーション
+
+```
+buner g model Task title:string description:text
+buner db:migrate
+```
+
+* DB作成の確認
+
+```
+# DBコンソール
+buner db
+  select * from tasks; 
+# Railsコンソール
+buner c
+  Task.all
+  task = Task.new
+  task.title = "Test"
+  task.description = "Desc"
+  task.save
+  Task.all
+  Task.find 1
+```
+
+* DBのロールバックができるか確認
+
+```
+buner db:migrate:redo STEP=1
+buner db
+  select * from tasks; 
+  ->中身が空の状態
+```
+
 # Tips
 ## rails new の途中でエラーが発生しやり直す場合
 
