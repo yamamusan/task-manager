@@ -90,7 +90,7 @@ see:https://qiita.com/naoki85/items/51a8b0f2cbf949d08b11
   * ロール
 
 
-## #3　自分のタスクを簡単に登録したい
+## Step6:タスクモデルの初期作成
 
 * DBの作成
 
@@ -130,6 +130,60 @@ buner db
   select * from tasks; 
   ->中身が空の状態
 ```
+
+## Step7:タスクのCRUD APIを作成しよう
+
+### 仕様メモ
+
+* /api/tasksのような名前空間を切る
+* APIはとりあえず、以下の5つを作成する
+  * GET        /tasks   -> index
+  * GET        /tasks/1 -> show
+  * POST       /tasks   -> create
+  * PATCH/PUT  /tasks/1 -> update
+  * DELETE     /tasks/1 -> destroy
+
+### 作業の流れ
+* app/controller/apiフォルダを作る
+* とりあえずControllerを自動生成する(helperやassets(coffescript)などの作成はスキップする)
+
+```
+# model-nameを指定しないとapi::Task.allみたいなロジックなるため
+buner g scaffold_controller api::task --model-name=task  --api
+```
+
+* 間違って自動生成した場合は以下で削除できる
+
+```
+buner destroy scaffold_controller api::task
+```
+
+* route.rbを修正(以下を追加.urlとmodule名にはapiを付与するが、自動生成系のメソッドプレフィックスにはつけない)
+
+```
+  scope :api, module: :api do
+    resources :tasks, only: [:index, :show, :create, :update, :destroy]
+  end
+```
+
+* scaffoldで生成された状態だと、API呼び出し時にエラーになるため修正を行う
+  * xxxx.json.jbuilder -> tasks/task を taskに変更 
+
+### 動作確認をどうするか
+
+* get系のものは、rails consoleでActiveRecord経由でデータ突っ込んで、リクエスト投げれば良い
+* 登録や更新系は自前で毎度JSON書くのはつらいのでREST clientを使いたくなる
+* どうやらPOSTMANが一番メジャーっぽいのでそれを使うことにした
+
+### 動かしてみたところ・・・
+
+* [エラー]CSRF関連のエラーが帰ってきた
+  *  `protect_from_forgery with: :null_session`をapplication_controller.rbに追加
+  * ただし、これは一時的に回避策なので本来はちゃんとトークンを引き回すようなことをやるべき
+* [想定外1]GETした際の結果に、タイトルや説明の項目が入ってこない
+  * _task.json.jbuilderに出力項目として追加する必要があった
+* [想定外2]POSTしたのに、タイトルなどが登録されていない
+  * TasksControllerにpermitする処理を追加する必要があった
 
 # Tips
 ## rails new の途中でエラーが発生しやり直す場合
