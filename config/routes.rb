@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  namespace :api, format: 'json' do
+  scope :api, module: :api do
     resources :tasks, only: [:index, :show, :create, :update, :destroy]
   end
 end

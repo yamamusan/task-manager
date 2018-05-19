@@ -48,6 +48,7 @@ class Api::TasksController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def task_params
-      params.fetch(:task, {})
+      # 許可する項目だけを記載する
+      params.fetch(:task, {}).permit(:title, :description) 
     end
 end
