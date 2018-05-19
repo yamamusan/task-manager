@@ -166,6 +166,10 @@ buner destroy scaffold_controller api::task
   end
 ```
 
+* scaffoldで生成された状態だと、API呼び出し時にエラーになるため修正を行う
+  * xxxx.json.jbuilder -> tasks/task を taskに変更 
+  * _task.json.jbuild  -> task_url を api_task_urlに変更
+
 
 # Tips
 ## rails new の途中でエラーが発生しやり直す場合
