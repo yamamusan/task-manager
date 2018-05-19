@@ -90,7 +90,7 @@ see:https://qiita.com/naoki85/items/51a8b0f2cbf949d08b11
   * ロール
 
 
-## #3　自分のタスクを簡単に登録したい
+## Step6:タスクモデルの初期作成
 
 * DBの作成
 
@@ -130,6 +130,42 @@ buner db
   select * from tasks; 
   ->中身が空の状態
 ```
+
+## Step7:タスクのCRUD APIを作成しよう
+
+### 仕様メモ
+
+* /api/tasksのような名前空間を切る
+* APIはとりあえず、以下の5つを作成する
+  * GET        /tasks   -> index
+  * GET        /tasks/1 -> show
+  * POST       /tasks   -> create
+  * PATCH/PUT  /tasks/1 -> update
+  * DELETE     /tasks/1 -> destroy
+
+### 作業の流れ
+* app/controller/apiフォルダを作る
+* とりあえずControllerを自動生成する(helperやassets(coffescript)などの作成はスキップする)
+
+```
+# model-nameを指定しないとapi::Task.allみたいなロジックなるため
+buner g scaffold_controller api::task --model-name=task  --api
+```
+
+* 間違って自動生成した場合は以下で削除できる
+
+```
+buner destroy scaffold_controller api::task
+```
+
+* route.rbを修正(以下を追加)
+
+```
+  namespace :api, format: 'json' do
+    resources :tasks, only: [:index, :show, :create, :update, :destroy]
+  end
+```
+
 
 # Tips
 ## rails new の途中でエラーが発生しやり直す場合
