@@ -221,6 +221,18 @@ webpacker: ./bin/webpack-dev-server
 * ポートが5000に変わるので、`http://localhost:5000`にアクセスすると画面が表示されるはず
 * その状態で、Vueファイルを変更して再度画面にアクセスすると、変更が反映されているはず(画面開いていればリロードすらせずに反映される)
 
+### VSCodeで.vueファイルのフォーマットを効かそう
+
+* **Vetur** プラグインが入ってなければいれる
+* Veturだけだとフォーマットが効かないので、**Prettier** というプラグインも入れる   
+* User settingsに以下を追記して画面再ロード
+
+```
+    "prettier.singleQuote": true,
+    "prettier.semi":false,
+    "vetur.format.defaultFormatter.html": "js-beautify-html"
+```
+* `option + shift + F`　でフォーマットがきくようになる
 
 ## ステップ8: タスクを登録・更新・削除する画面を作成しましょう
 
@@ -231,6 +243,66 @@ webpacker: ./bin/webpack-dev-server
 * ↓のルートアクセス時の画面作成では、index.html.erbがロードされたら、hello_vue.jsをロードするようにしている
 * 実際の開発では、hello_vue.jsという名前は使われないので、同様の物を作り直すイメージ
 
+### ディレクトリ構成を整える＆asset pipelineの廃止
+
+* デフォルトのディレクトリ構成はいまいちなので、以下のようにディレクトリ構成を整える
+
+```
+#修正前
+app
+  L javascript
+    L packs
+
+#修正後
+app
+  L frontend
+    L entry          ...entryのjsファイルをおくだけ
+    L javascripts    ...javascriptファイル置き場
+      L components   ...vueコンポーネントをおく場所
+    L stylesheets    ...sassファイルをおく場所
+    L images         ...画像ファイルを配置する
+```
+
+* 変える際のコマンドは以下。また、assets pipelineは使わないので削除
+
+```
+rm -fr app/assets
+mv app/javascript app/frontend
+mv app/frontend/packs app/frontend/entry
+cd app/frontend
+mkdir stylesheets
+mkdir images
+mkdir javascripts
+touch stylesheets/application.css
+touch javascripts/application.js
+touch images/.keep
+``` 
+
+* config/webpacker.yml を以下のように修正し、ディレクトリの変更に追随する
+
+```
+ default: &default
+-  source_path: app/javascript
++  source_path: app/frontend
+-  source_entry_path: packs
++  source_entry_path: entry
+```
+* .jsや.cssを読み込むようにするため、`app/frontend/entry/application.js` でこれらを読み込むようにする
+
+```
++import '../javascripts/application';
++import '../stylesheets/application';
++require.context('../images', true, /\.(png|jpg|jpeg|svg)$/);
+
+console.log('Hello World from Webpacker')
+```
+* `app/views/layouts/application.html.erb`の以下２行を削除
+
+```
+    <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
+```
+ 
 ### ルートアクセス時の画面を作成する
 
 * 基本的に、Railsで用意するビューファイルは1つのみで、そこを差し替えていきます。  
@@ -240,7 +312,7 @@ webpacker: ./bin/webpack-dev-server
   * config/routes.rb
   * app/views/home/index.html.erb
 
-javascript_pack_tagを使用することで、app/javascript/packs以下にあるJSファイルを探してくれます。  
+javascript_pack_tagを使用することで、app/frontend/javascript以下にあるJSファイルを探してくれます。  
 インストール時にhello_vue.jsというファイルが生成されているので、これをindexにて読み込ませます。  
 これで`bin/server`して、「Hello Vue!」と表示されれば大丈夫です。
 
@@ -254,10 +326,11 @@ javascript_pack_tagを使用することで、app/javascript/packs以下にあ�
   <navbar></navbar>
 </div>
 
-<%= javascript_pack_tag 'taskul' %>
+<%= javascript_pack_tag 'applicatoin' %>
+<%= stylesheet_pack_tag 'application' %>
 ```
 
-* `mv app/javascript/packs/hello_vue.js app/javascript/packs/taskul.js`でリネーム
+* `mv app/frontend/javascripts/hello_vue.js app/frontend/javascripts/application.js`でリネーム
 * 移動したファイルを以下の内容に編集し、Vueインスタンス作成し、index.html.erb内の<div id="app">にマウントされる
 
 ```
@@ -267,10 +340,10 @@ var app = new Vue({
   el: '#app',
 });
 ```
-* `mkdir -p app/javascript/packs/components` でコンポーネント用のディレクトリを作成
+* `mkdir -p app/frontend/javascripts/components` でコンポーネント用のディレクトリを作成
 * 上記ディレクトリ内に `header.vue` を作成し、ヘッダ用のコンポーネントを作成する
 * 内容は本体参照だが、ここでは、ロジックは不要なので、<template>でHTMLだけを記載する(初回はhogeとかでOK。)
-* これを、`taskul.js`に登録(コンポーネントとして認識)させる(navbarという名前＝タグ名で登録)
+* これを、`application.js`に登録(コンポーネントとして認識)させる(navbarという名前＝タグ名で登録)
 
 ```
 import Vue from 'vue/dist/vue.esm.js'
@@ -287,35 +360,46 @@ var app = new Vue({
 * サーバを再起動して、`http://localhost:5000`にアクセスするとヘッダだけが表示されるはず
 * この状態で、`header.vue`を修正していくと、即反映されるので開発が捗る
 
+### コンポーネントから画像を参照する
+
+* `app/frontend/images`にmaterial designのface画像を配置
+* この画像を`header.vue`から参照して、表示させる
+* 以下のように記載すればOK 
+
+```
+ <img src="../../images/user.png">
+```
+
 ### CSSフレームワークを導入しましょう
 
 * 後のタイミングでも良いのだが、導入はここでやっといて、細かくデザインを凝るのはあとやる
 * 今回は一番スタンダード(ちょっと下火っぽいけど)なbootstrapを使ってみる(バージョンは4)
-* Gemfileに以下を追記して、`bundle install`  
+* gemでbootstrapを入れる方法もあるが、assets pipelineをやめたのでyarnを使って入れる
 
 ```
-gem 'bootstrap', '~> 4.1.1'
-gem 'jquery-rails'
+yarn add bootstrap@4.1.1 font-awesome jquery tether popper.js
 ```
-
-* `mv app/assets/stylesheets/application.css app/assets/stylesheets/application.scss`でscssに拡張子変更
-* application.scssを以下の内容に書き換え
+*  `app/frontend/javascripts/application.js`の先頭に以下を記載
 
 ```
-// Custom bootstrap variables must be set or imported *before* bootstrap.
-@import "bootstrap";
+import 'bootstrap/dist/js/bootstrap'
 ```
-
-* Bootstrapと依存関係をapplication.jsに追記する 
+*  `app/frontend/stylesheets/application.scss`の先頭に以下を記載
 
 ```
-//= require jquery3
-//= require popper
-//= require bootstrap-sprockets
+@import '~bootstrap/dist/css/bootstrap';
+$fa-font-path: "~font-awesome/fonts";
+@import '~font-awesome/scss/font-awesome';
 ```
+* `header.vue` にbootstrapのクラスとかを指定して、反映されていることを確認する
 * `bin/server`でサーバを起動すると、ヘッダの画面にもスタイルが適用されていることがわかるはず
 
 ### ひとまず一覧画面の枠を作成する（まだServerから情報はもらわない）
+
+* コンポーネントファイル名は`task-list.vue`としてみる
+
+
+# ★ 今ここ！！あ、ヘッダをもっときれいにつくらないとだめだ!!
 
 
 # Tips
