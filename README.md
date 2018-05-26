@@ -46,6 +46,7 @@ buner new . -B --webpack=vue --skip-test
 see:https://qiita.com/naoki85/items/51a8b0f2cbf949d08b11
 
 * .gitignoreに`/vendor`を追加する
+* .gitignoreに`/public/packs`を追加する
 * この辺で一度git commitしておく
 
 ## 作りたいアプリケーションのイメージを考える
@@ -123,6 +124,7 @@ buner c
 ```
 
 * DBのロールバックができるか確認
+* なお、redoは指定されたポイントまでロールバックした上で再度マイグレーションを実行する
 
 ```
 buner db:migrate:redo STEP=1
@@ -184,6 +186,54 @@ buner destroy scaffold_controller api::task
   * _task.json.jbuilderに出力項目として追加する必要があった
 * [想定外2]POSTしたのに、タイトルなどが登録されていない
   * TasksControllerにpermitする処理を追加する必要があった
+
+## 番外1: VueJSの開発環境を整備しましょう
+
+### WebPackのコンパイルを自動化しよう
+
+#### なぜやるのか
+* 通常VueJS(というよりWebPack)関連のファイル(*.vueなど)を変更した場合は、`bin/webpack`でコンパイルする必要がある
+* なお、`bundle exec rails s`をした際には、WebPackのコンパイルも同時に走っている
+* 通常、`rails s` で起動した後、*.vueファイルを変えただけでは、画面に変更はされず、`bin/webpack`することで反映される
+* これはめんどくさいので、`foreman`というgemを使って、コードを変更したらコンパイルが自動で走るようにする
+
+#### 設定手順
+
+* Gemfileに`gem 'foreman'`を追加する(Developmentグループに)
+* `bundle install`を実行
+* bin/serverというファイルを作成する
+
+```
+#!/bin/bash -i
+bundle install
+bundle exec foreman start -f Procfile.dev
+```
+* Procfile.devというファイルを作成する
+
+```
+web: bundle exec rails s
+# watcher: ./bin/webpack-watcher
+webpacker: ./bin/webpack-dev-server
+```
+* `chmod u+x bin/server`を実行しておく
+* `bin/server`で起動する
+* ポートが5000に変わるので、`http://localhost:5000`にアクセスすると画面が表示されるはず
+* その状態で、Vueファイルを変更して再度画面にアクセスすると、変更が反映されているはず(画面開いていればリロードすらせずに反映される)
+
+## ステップ8: タスクを登録・更新・削除する画面を作成しましょう
+
+### ルートアクセス時の画面を作成する
+
+* 基本的に、Railsで用意するビューファイルは1つのみで、そこを差し替えていきます。  
+まずは、以下のファイルを作成、編集します。(内容はソース参照)
+
+  * app/controllers/home_controller.rb
+  * config/routes.rb
+  * app/views/home/index.html.erb
+
+javascript_pack_tagを使用することで、app/javascript/packs以下にあるJSファイルを探してくれます。  
+インストール時にhello_vue.jsというファイルが生成されているので、これをindexにて読み込ませます。  
+これで`rails s`して、「Hello Vue!」と表示されれば大丈夫です。
 
 # Tips
 ## rails new の途中でエラーが発生しやり直す場合
