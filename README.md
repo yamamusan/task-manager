@@ -290,18 +290,33 @@ var app = new Vue({
 ### CSSフレームワークを導入しましょう
 
 * 後のタイミングでも良いのだが、導入はここでやっといて、細かくデザインを凝るのはあとやる
-* 今回は一番スタンダード(ちょっと下火っぽいけど)なbootstrapを使ってみる
-* Gemfileに以下を追記して、`bundle install`  なお、bootstrapの記載がある場合は書き換える
+* 今回は一番スタンダード(ちょっと下火っぽいけど)なbootstrapを使ってみる(バージョンは4)
+* Gemfileに以下を追記して、`bundle install`  
 
 ```
 gem 'bootstrap', '~> 4.1.1'
 gem 'jquery-rails'
 ```
 
+* `mv app/assets/stylesheets/application.css app/assets/stylesheets/application.scss`でscssに拡張子変更
+* application.scssを以下の内容に書き換え
+
+```
+// Custom bootstrap variables must be set or imported *before* bootstrap.
+@import "bootstrap";
+```
+
+* Bootstrapと依存関係をapplication.jsに追記する 
+
+```
+//= require jquery3
+//= require popper
+//= require bootstrap-sprockets
+```
+* `bin/server`でサーバを起動すると、ヘッダの画面にもスタイルが適用されていることがわかるはず
 
 ### ひとまず一覧画面の枠を作成する（まだServerから情報はもらわない）
 
-*
 
 # Tips
 ## rails new の途中でエラーが発生しやり直す場合
