@@ -424,12 +424,54 @@ $fa-font-path: "~font-awesome/fonts";
 参考：http://blog.yuhiisk.com/archive/2016/03/22/customize-the-css-of-bootstrap.html
 参考：https://creive.me/archives/9316/
 
+### ルーティングによる画面の切り替え
+
+* Vue-Routerを使用することで、登録されたパスとコンポーネントで画面内を差し替えることができます。
+* yarnを使ってvue-routerを追加します。
+
+```
+yarn add vue-router
+```
+* ひとまず、一覧画面のコンポーネントの雛形を作ります
+  * この時点では、ルーティングされることの確認なので中身はなんでもOK
+  * ファイル名は`task-list.vue`としてみる
+* 次にこのコンポーネントとパスを登録するrouter.jsを`frontend/javascripts`以下に作成
+
+```
+import Vue from 'vue/dist/vue.esm.js'
+import VueRouter from 'vue-router'
+import TaskList from 'components/task-list.vue'
+ 
+Vue.use(VueRouter)
+ 
+export default new VueRouter({
+  mode: 'history',
+  routes: [
+    { path: '/', component: TaskList },
+  ],
+}
+```
+
+* 最後に`frontend/javascripts/application.js`に以下を追加し、exportしたRouteオブジェクトをrouterとして登録する
+
+```
+import 'bootstrap/dist/js/bootstrap'
+import Vue from 'vue/dist/vue.esm.js'
++ import Router from 'router.js'
+import Header from './components/header.vue'
+
+var app = new Vue({
++ router: Router,
+  el: '#app',
+  components: {
+    'navbar': Header,
+  }
+});
+```
+
 ### ひとまず一覧画面の枠を作成する（まだServerから情報はもらわない）
 
-* コンポーネントファイル名は`task-list.vue`としてみる
-
-
-# ★ 今ここ！！あ、ヘッダをもっときれいにつくらないとだめだ!!
+* 前の手順で作成した`task-list.vue`について、画面をそれっぽく作ってみる
 
 
 # Tips
