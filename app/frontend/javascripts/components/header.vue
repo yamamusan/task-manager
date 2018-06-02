@@ -1,7 +1,6 @@
 <template>
-  <!-- #39DCE6 -->
   <div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-dark navbar-expand-lg taskul-nav-color">
       <a class="navbar-brand" href="#">Taskul</a>
 
       <!-- レスポンシブデザイン用に画面サイズが小さくなったらdata-targetのブロックを隠し、右側にメニューを表示する -->
@@ -9,12 +8,25 @@
         <span class="navbar-toggler-icon"></span>
       </button>
 
+      <!-- Bootstrapのドロップダウンメニューを利用。中のテキストは画像にしている -->
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-auto">
 
-        <!-- イメージを直接表示する場合 -->
-        <img src="~images/user.png" class="img-fluid taskul-right">
-        <!-- イメージもCSS化する場合は以下のような感じ　-->
-        <!-- <div id="taskul-user" class="img-fluid"></div> -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <!-- イメージを直接表示する場合 -->
+              <img src="~images/user.png" class="img-fluid">
+              <!-- イメージもCSS化する場合は以下のような感じ　-->
+              <!-- <div id="taskul-user" class="img-fluid"></div> -->
+            </a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+              <a class="dropdown-item" href="#">プロフィール</a>
+              <a class="dropdown-item" href="#">アカウント管理</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="#">Something else here</a>
+            </div>
+          </li>
+        </ul>
 
         <!-- <ul class="navbar-nav mr-auto">
           <li class="nav-item active">
@@ -25,18 +37,7 @@
           <li class="nav-item">
             <a class="nav-link" href="#">Link</a>
           </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Dropdown
-            </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-              <a class="dropdown-item" href="#">Action</a>
-              <a class="dropdown-item" href="#">Another action</a>
-              <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="#">Something else here</a>
-            </div>
-          </li>
-          <li class="nav-item">
+         <li class="nav-item">
             <a class="nav-link disabled" href="#">Disabled</a>
           </li>
         </ul>
@@ -72,6 +73,17 @@
       </div>
     </div>
  -->
+
+    <!-- Jumbotronと呼ばれるBootstrapのパーツ使う場合 -->
+    <!-- <div class="jumbotron">
+      <div class="container-fluid">
+        <h1>Hoge!!kk</h1>
+        <p>
+          <a class="btn btn-primary btn-lg" href="#" role="button">CONTACT ME</a>
+        </p>
+      </div>
+    </div>
+    -->
 
   </div>
 </template>
