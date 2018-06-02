@@ -1,5 +1,5 @@
 @import '~bootstrap/dist/css/bootstrap';
-$fa-font-path: "~font-awesome/fonts";
+$fa-font-path: '~font-awesome/fonts';
 @import '~font-awesome/scss/font-awesome';
 
 // アプリケーション独自の定義
@@ -8,7 +8,7 @@ $fa-font-path: "~font-awesome/fonts";
 }
 
 .taskul-nav-color {
-  background-color:#39DCE6;
+  background-color: #39dce6;
 }
 
 .navbar {
@@ -18,18 +18,23 @@ $fa-font-path: "~font-awesome/fonts";
 .navbar-brand {
   padding-top: 0.1rem;
   padding-bottom: 0.1rem;
-  font-size: 2.0rem;
+  font-size: 2rem;
 }
 
 .navbar-dark .navbar-nav .nav-link {
   color: rgba(255, 255, 255, 0.9);
 }
 
+.taskul-title-area {
+  width: 100%;
+  padding: 0.5rem 0rem;
+}
+
 #taskul-user {
   width: 100%;
   height: 40px;
   background-repeat: no-repeat;
-  background-image: url("~images/user.png");
+  background-image: url('~images/user.png');
 }
 
 // TODO:別ファイルに切り出す場合は？

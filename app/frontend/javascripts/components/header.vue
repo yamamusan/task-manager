@@ -1,5 +1,7 @@
 <template>
-  <div>
+
+  <!-- 固定ヘッダ -->
+  <div class="sticky-top">
     <nav class="navbar navbar-dark navbar-expand-lg taskul-nav-color">
       <a class="navbar-brand" href="#">Taskul</a>
 
