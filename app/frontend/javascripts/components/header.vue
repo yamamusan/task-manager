@@ -9,9 +9,12 @@
         <span class="navbar-toggler-icon"></span>
       </button>
 
-      <img src="../../images/user.png">
-
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+        <!-- イメージを直接表示する場合 -->
+        <img src="~images/user.png" class="img-fluid taskul-right">
+        <!-- イメージもCSS化する場合は以下のような感じ　-->
+        <!-- <div id="taskul-user" class="img-fluid"></div> -->
 
         <!-- <ul class="navbar-nav mr-auto">
           <li class="nav-item active">
