@@ -342,7 +342,7 @@ var app = new Vue({
 ```
 * `mkdir -p app/frontend/javascripts/components` でコンポーネント用のディレクトリを作成
 * 上記ディレクトリ内に `header.vue` を作成し、ヘッダ用のコンポーネントを作成する
-* 内容は本体参照だが、ここでは、ロジックは不要なので、<template>でHTMLだけを記載する(初回はhogeとかでOK。)
+* 内容は本体参照だが、ここでは、ロジックは不要なので、`<template>` でHTMLだけを記載する(初回はhogeとかでOK。)
 * これを、`application.js`に登録(コンポーネントとして認識)させる(navbarという名前＝タグ名で登録)
 
 ```
@@ -477,6 +477,64 @@ var app = new Vue({
 
 ### 振る舞いの仕様をrspecで書いていく
 
+#### テストの方針
+
+* ホワイトボックスよりのテストはモデルとヘルパーのUnitテスト
+* E2EテストはCapybaraベースで
+* APIに関するテストはRequest　Specを使う？
+* 以下のテストは実施しない
+  * コントローラ(+モデル)のテスト(機能テスト)
+* テストデータの管理にはfactory-botを使用する
+* Turnipでテスト仕様(受け入れ条件)を書いていく
+* Outsite-inの原則に乗っ取り、E2E風なテストから実装していく
+* (TODO)Rspec RailsにSystemSpecというE2Eの機能が入ったみたいだが、今回はそこまでやれなそう
+
+#### RSpecのセットアップ
+
+* Gemfileを以下のように編集して、`buner install`を実施
+
+```
+group :development, :test do
+  gem "rspec-rails"
+  gem "factory_bot_rails"
+  gem "guard-rspec"
+  gem "spring-commands-rspec"
+  gem 'turnip'
+end
+
+group :test do
+  gem "faker"
+  gem "capybara"
+  gem "database_cleaner"
+  gem "launchy"
+  gem "selenium-webdriver"
+  gem "shoulda-matchers"
+end
+```
+
+* `rspec-rails` は RSpec を含んでいる gem である。この gem は Rails 専用の機能を追加する RSpec の ラッパーライブラリになっている。
+* `factory_bot_rails` は Rails がデフォルトで提供するフィクスチャをずっと便利な ファクトリ で置き換える。フィクスチャやファクトリはテストスイート用のテストデータを作成するために使われる。
+* `guard-rspec` は指定されたファイルを監視する。そして監視対象のファイルに応じてタスクを実行する。
+* `spring-commands-rspec` は Spring に bin/rspec コマンドのサポートを追加する。
+* `faker` は名前やメールアドレス、その他のプレースホルダを ファクトリ に提供する。
+* `capybara` はユーザと Web アプリケーションのやりとりをプログラム上で簡単にシミュレートできるようにする。
+* `database_cleaner` はまっさらな状態で各 spec が実行できるように、テストデータベースのデータを掃除する。
+* `launchy` はあなたの好きなタイミングでデフォルトの webブラウザを開き、アプリケーションの表示内容を見せる。テストをデバッグするときには 大変便利である。
+* `selenium-webdriver` はブラウザ上で JavaScript を利用する機能を Capybara でテストできるようにする。
+* `shoulda-matchers` は数多くの便利なマッチャを自動的に使えるようにする。
+
+参考：https://qiita.com/Morinikiz/items/cf179583c2c5d2e24c3c
+
+
+* Rspec用のディレクトリを作成する
+
+```
+buner g rspec:install
+mkdir -p spec/features spec/steps
+```
+
+* `buner g model <モデル名>` でrspec用のテストクラスやファクトリクラスも作ってくれる
+* 今回はすでにtaskモデルを作成済みだが、`buner g model task --skip`で必要なテスト部分だけ生成してくれる
 
 # Tips
 ## rails new の途中でエラーが発生しやり直す場合
