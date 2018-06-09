@@ -505,9 +505,10 @@ end
 group :test do
   gem "faker"
   gem "capybara"
+  gem "selenium-webdriver"
+  gem 'chromedriver-helper'
   gem "database_cleaner"
   gem "launchy"
-  gem "selenium-webdriver"
   gem "shoulda-matchers"
 end
 ```
@@ -518,9 +519,10 @@ end
 * `spring-commands-rspec` は Spring に bin/rspec コマンドのサポートを追加する。
 * `faker` は名前やメールアドレス、その他のプレースホルダを ファクトリ に提供する。
 * `capybara` はユーザと Web アプリケーションのやりとりをプログラム上で簡単にシミュレートできるようにする。
+* `selenium-webdriver` はブラウザ上で JavaScript を利用する機能を Capybara でテストできるようにする。
+* `chromedriver-helper` はChromeのドライバーを実行できるようになる.
 * `database_cleaner` はまっさらな状態で各 spec が実行できるように、テストデータベースのデータを掃除する。
 * `launchy` はあなたの好きなタイミングでデフォルトの webブラウザを開き、アプリケーションの表示内容を見せる。テストをデバッグするときには 大変便利である。
-* `selenium-webdriver` はブラウザ上で JavaScript を利用する機能を Capybara でテストできるようにする。
 * `shoulda-matchers` は数多くの便利なマッチャを自動的に使えるようにする。
 
 参考：https://qiita.com/Morinikiz/items/cf179583c2c5d2e24c3c
@@ -536,8 +538,122 @@ mkdir -p spec/features spec/steps
 * `buner g model <モデル名>` でrspec用のテストクラスやファクトリクラスも作ってくれる
 * 今回はすでにtaskモデルを作成済みだが、`buner g model task --skip`で必要なテスト部分だけ生成してくれる
 
-# Tips
+* また、準備として、`.rspec`に以下の記載を追加する
+
+```
+--format documentation
+--require turnip/rspec
+```
+* また、`spec_helper.rb`に以下の記載を追加する
+
+```
+Dir.glob("spec/**/*steps.rb") { |f| load f, true }
+
+# Capybara自体の設定、ここではどのドライバーを使うかを設定しています
+Capybara.configure do |capybara_config|
+  capybara_config.default_driver = :selenium_chrome
+  capybara_config.default_max_wait_time = 10 # 一つのテストに10秒以上かかったらタイムアウトするように設定しています
+end
+# Capybaraに設定したドライバーの設定をします
+Capybara.register_driver :selenium_chrome do |app|
+  options = Selenium::WebDriver::Chrome::Options.new
+  options.add_argument('headless') # ヘッドレスモードをonにするオプション
+  options.add_argument('--disable-gpu') # 暫定的に必要なフラグとのこと
+  Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
+end
+
+Capybara.javascript_driver = :selenium_chrome
+```
+
+#### RSpecにE2Eのテストを書いてみる
+
+* まず、`spec/features/top.feature`に仕様を書いていく
+
+```
+# encoding: utf-8
+# language: ja
+
+@common
+機能: トップ画面
+  トップ画面に関するテストです。
+
+  @new
+  シナリオ: トップ画面で新規登録を押すと、登録画面が表示される
+    もし    トップ画面にアクセス
+    かつ    新規登録ボタンを押下
+    ならば   新規登録画面が表示される 
+
+  @search
+  シナリオ: トップ画面で詳細検索ボタンを押すと、詳細検索画面が表示される
+    もし    トップ画面にアクセス
+    かつ    詳細検索ボタンを押下
+    ならば   詳細検索画面が表示される 
+```
+
+* 次に、`spec/steps/top_steps.rb`に実施のテストコードを書いていく
+
+```
+require 'rails_helper'
+
+steps_for :common do
+  step 'トップ画面にアクセス' do
+    visit root_path
+  end
+end
+
+steps_for :new do
+  step '新規登録ボタンを押下' do
+    click_button '新規登録'
+  end
+
+  step '新規登録画面が表示される' do
+    visit root_path
+  end
+end
+
+steps_for :search do
+  step '詳細検索ボタンを押下' do
+    visit root_path
+    click_button '詳細検索'
+  end
+
+  step '詳細検索画面が表示される' do
+    visit root_path
+  end
+end
+```
+
+* 以下でfeatureのテストを実行する
+
+```
+bundle exec rspec spec/features/top.feature
+```
+
+* エラーにならなければとりあえず導入はOK.(エラーにならないようなテストケースにしているので)
+* 準備が整ったので、あとは実際の期待すべき仕様を書いていく 
+
+
+# tips
 ## rails new の途中でエラーが発生しやり直す場合
 
-* もう既にRailsプロジェクトがある旨のエラーが発生するので、以下で消してから再実行する
-`rm -fr app bin config db lib log public test tmp config Rakefile`
+* もう既にrailsプロジェクトがある旨のエラーが発生するので、以下で消してから再実行する
+`rm -fr app bin config db lib log public test tmp config rakefile`
+
+## capybaraのテスト時にfirefoxを使う場合
+
+* 今回はchromeのヘッドレスドライバを使ったが、標準だとfirefoxになる雰囲気
+* その場合は、色々面倒な設定やインストールが必要だった
+  * gemfileに`gem "capybara-webkit"`を入れる
+  * firefoxをインストール(今回はこれが嫌だったのでやめた)
+  * 以下のコマンドを実行し、色々インストール
+```
+brew install qt@5.5
+ln -s /usr/local/cellar/qt@5.5/5.5.1_1/bin/qmake /usr/local/bin/qmake
+```
+  * spec_helper.rbに以下の設定を追加 
+
+```
+actioncontroller::base.asset_host = "http://localhost:3000"
+capybara.default_driver = :selenium
+config.include capybara::dsl
+```
