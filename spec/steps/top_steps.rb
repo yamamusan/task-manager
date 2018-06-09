@@ -14,7 +14,8 @@ steps_for :new do
   end
 
   step '新規登録画面が表示される' do
-    visit root_path
+    expect(page).to have_field 'タイトル'
+    expect(page).to have_button '登録'
   end
 end
 
@@ -25,6 +26,7 @@ steps_for :search do
   end
 
   step '詳細検索画面が表示される' do
-    visit root_path
+    expect(page).to have_field 'タイトル'
+    expect(page).to have_button '登録'
   end
 end
