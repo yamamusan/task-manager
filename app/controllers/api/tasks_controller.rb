@@ -4,7 +4,8 @@ class Api::TasksController < ApplicationController
   # GET /tasks
   # GET /tasks.json
   def index
-    @tasks = Task.all
+    condition = Task.new(search_params)
+    @tasks = condition.search
   end
 
   # GET /tasks/1
@@ -50,5 +51,10 @@ class Api::TasksController < ApplicationController
     def task_params
       # 許可する項目だけを記載する
       params.fetch(:task, {}).permit(:title, :description) 
+    end
+
+    def search_params
+      # 許可する項目だけを記載する
+      params.permit(:title, :description) 
     end
 end

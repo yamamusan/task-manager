@@ -693,9 +693,131 @@ end
 * taskモデルに対するテスト
   * バリデーション
     * タイトルは必須、説明は任意
-    * タイトルは256文字以上はエラー
+    * タイトルは256文字以上はエラー 
+* テストを実行すると当然エラーになる
+* 以下のようにtask.rbにバリデーションを追加する
+  * `validates :title, presence: true, length: { maximum: 256 }`
+* テストを実行すると、全てOKになるはず。これがTDDや！！！
+
+### BackEndの処理を実装していきましょう！
+
+#### 一覧画面とAPIと処理の関連を考えてみる
+
+|No|画面側の操作|API(URL)|処理のイメージ|
+|:--:|:--|:--|:--|
+|1|初期表示,ステータスボタン押下,詳細検索|GET /api/tasks|指定された条件でAND検索.条件が一つもなければ全件検索。ソート順はとりあえずID|
+|2|新規登録ボタン押下|-|-|
+|3|詳細検索ボタン押下|-|-|
+
+#### 1のバックエンドについての設計
+
+* 条件が指定されてなければallだが、指定されてたら指定された条件のみ連結してANDでつなぐ形になる
+* controllerでこれを普通に実装しようとすると、if地獄になり、Fat Controllerになってしまう
+* なので、model側でSQLの組み立てを行うようなイメージでやりたい
+* フィジビリティ確認のために、modelに以下の実装を入れてみる
+
+```
+  scope :title_like, ->(title) { where('title like ?', "%#{title}%") if title.present? }
+  scope :description_like, ->(description) { where('description like ?', "%#{description}%") if description.present? }
+
+  def search
+    Task.title_like(self.title).description_like(self.description)
+  end
+```
+* 上記に対して、例えば以下のように呼び出すと、結果的に条件が指定されている項目だけAND検索される
+
+```
+# taskは検索条件がはいったtaskインスタンス
+task.search
+```
+
+* 上記で期待通りの挙動をしそうな感じ
+* なので、上記に対するテストを作成する
+  * テストデータはFactoryBotで書く(データを４つほど用意する)
+  * あとは、rspecに以下のようなテストを作成する
+
+```
+  describe '検索のテスト' do
+    # これだと毎回テストデータを入れるので性能がいまいち
+    # see: https://www.oiax.jp/rails/tips/initialize-test-data-with-factory-girl.html
+    # なおletは遅延評価なので呼ばれたときに評価される、!をつければ毎回評価される
+    1.upto(4) { |i| eval "let!(:data#{i}) {create :data#{i}}" }
+    let(:task) { Task.new }
+
+    context '条件の指定がない場合' do
+      example '全件が取得されること' do
+        expect(task.search).to match_array [data1, data2, data3, data4]
+      end
+      example '特に上限がないこと' do
+        create_list(:base, 100)
+        expect(task.search.size).to eq 104
+      end
+    end
+
+    context 'タイトルの指定がある場合' do
+      example '存在しない場合は空が変える' do
+        task.title = 'nothing'
+        expect(task.search.size).to eq 0
+      end
+
+      example 'Like検索になっていること' do
+        task.title = 'jenkins'
+        expect(task.search).to match_array [data1, data2]
+        task.title = 'redmine'
+        expect(task.search).to match_array [data4]
+      end
+    end
+
+    context '説明の指定がある場合' do
+      example '存在しない場合は空が変える' do
+        task.description = 'nothing'
+        expect(task.search.size).to eq 0
+      end
+
+      example 'Like検索になっていること' do
+        task.description = 'cool'
+        expect(task.search).to match_array [data1, data2]
+        task.description = 'GitLab'
+        expect(task.search).to match_array [data4]
+      end
+    end
+
+    context '複数条件の指定がある場合' do
+      example 'AND条件になっていること' do
+        task.title = 'jenkins'
+        task.description = 'nothing'
+        expect(task.search.size).to eq 0
+        task.description = 'tool'
+        expect(task.search.size).to eq 0
+        task.description = 'are'
+        expect(task.search).to match_array [data2]
+      end
+    end
+  end
+```
+
+* 続いて、コントローラに作成したtask#searchメソッドの呼び出し処理を追加する
+
+```
+  def index
+    condition = Task.new(search_params)
+    @tasks = condition.search
+  end
+
+  ・・・
+
+    def search_params
+      params.permit(:title, :description) 
+    end
+```
+
+* (本当はAPIに対するテストを書いた方がいいんだろうけど)ひとまずPOSTMANで動作確認
+  * `http://localhost:5000/api/tasks?title=jenkins&description=nice' とかで期待通りに帰って来ればOK
 
 
+#### ステータスという項目がtaskモデルにないので追加する
+
+* 今ここ！！！！
 
 # tips
 ## rails new の途中でエラーが発生しやり直す場合
@@ -721,3 +843,8 @@ actioncontroller::base.asset_host = "http://localhost:3000"
 capybara.default_driver = :selenium
 config.include capybara::dsl
 ```
+
+## rspecで特定のケースだけ実施したい場合
+
+http://o.inchiki.jp/obbr/175
+
