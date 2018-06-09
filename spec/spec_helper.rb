@@ -96,6 +96,9 @@ RSpec.configure do |config|
 
   Dir.glob('spec/**/*steps.rb') { |f| load f, true }
 
+ # ファクトリを簡単に呼び出せるよう、Factory Girl の構文をインクルードする
+ config.include FactoryBot::Syntax::Methods
+
   # Capybara自体の設定、ここではどのドライバーを使うかを設定しています
   Capybara.configure do |capybara_config|
     capybara_config.default_driver = :selenium_chrome

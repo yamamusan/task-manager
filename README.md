@@ -630,7 +630,71 @@ bundle exec rspec spec/features/top.feature
 ```
 
 * エラーにならなければとりあえず導入はOK.(エラーにならないようなテストケースにしているので)
-* 準備が整ったので、あとは実際の期待すべき仕様を書いていく 
+* 準備が整ったので、あとは実際の期待すべき仕様を書いていく。が、その前にユニットテストを書いていく
+
+
+#### ユニットテストを書いていく
+
+##### 方針
+
+* ユニットテストは内部的な挙動の話なので、turnipは使わない
+* rspecでモデルに対するSpecを普通に書いていく
+* 対象は`spec/models/task_spec.rb`
+* モデルスペックに含める内容(結構ActiveRecordがやってくれるので意外とやることないな)
+  * 有効な属性が渡された場合、モデルのcreateメソッドが正常に完了すること。
+  * バリデーションを失敗させるデータがあれば、正常に完了しないこと。
+  * クラスメソッドとインスタンスメソッドが期待通りに動作すること。
+
+##### HelloWorldレベル
+
+* FactoryBotの記述(spec/factories/tasks.rb)
+
+```
+FactoryBot.define do
+  factory :base, class: "Task" do
+    title "Hello" 
+    description "Hello" 
+  end
+end
+```
+
+* ひとまず、上記のデータを活用したちょっとしたテストを書いてみる(spec/models/task_spec.rb)
+
+```
+  # let(:base) { FactoryBot.build(:base) }  # メモリ上に展開
+  let(:base) { FactoryBot.create(:base) }
+
+  example 'hoge' do
+    expect(base.title).to eq 'Hello'
+    expect(Task.find(1).title).to eq 'Hello'
+  end
+
+  example 'hoge2' do
+    p base
+    p Task.all
+  end
+```
+* `buner rspec spec/models/`でテストを実行
+* 以下のような挙動になる模様
+  * テストの実行前に毎度letメソッドの結果が保持される
+    * つまり、とあるexampleでletの値をいじっても次のテストに影響はない
+
+* FactoryBot.buildと書くのはだるいので、以下のような記述を`spec_helper.rb`に追記
+* これでbuildやcreateのような感じで呼び出せるようになる
+
+```
+ # ファクトリを簡単に呼び出せるよう、Factory Girl の構文をインクルードする
+ config.include FactoryBot::Syntax::Methods
+```
+
+
+##### 実践編
+
+* taskモデルに対するテスト
+  * バリデーション
+    * タイトルは必須、説明は任意
+    * タイトルは256文字以上はエラー
+
 
 
 # tips
