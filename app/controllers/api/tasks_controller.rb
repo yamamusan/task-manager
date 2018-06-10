@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 class Api::TasksController < ApplicationController
-  before_action :set_task, only: [:show, :update, :destroy]
+  before_action :set_task, only: %i[show update destroy]
 
   # GET /tasks
   # GET /tasks.json
@@ -10,8 +12,7 @@ class Api::TasksController < ApplicationController
 
   # GET /tasks/1
   # GET /tasks/1.json
-  def show
-  end
+  def show; end
 
   # POST /tasks
   # POST /tasks.json
@@ -42,19 +43,20 @@ class Api::TasksController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_task
-      @task = Task.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def task_params
-      # 許可する項目だけを記載する
-      params.fetch(:task, {}).permit(:title, :description) 
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_task
+    @task = Task.find(params[:id])
+  end
 
-    def search_params
-      # 許可する項目だけを記載する
-      params.permit(:title, :description) 
-    end
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def task_params
+    # 許可する項目だけを記載する
+    params.fetch(:task, {}).permit(:title, :description, :status, :priority)
+  end
+
+  def search_params
+    # 許可する項目だけを記載する
+    params.permit(:title, :description, statuses: [], priorities: [])
+  end
 end

@@ -8,9 +8,14 @@ RSpec.describe Task, type: :model do
     let(:base) { build(:base) } # メモリ上に展開
 
     describe '全項目' do
-      context '入力' do
+      context '全項目入力' do
         example 'エラーにならないこと' do
           expect(base).to be_valid
+        end
+      end
+      context '必須項目のみ入力' do
+        example 'エラーにならないこと' do
+          expect(Task.new(title: 'a', status: :doing)).to be_valid
         end
       end
     end
@@ -37,14 +42,38 @@ RSpec.describe Task, type: :model do
     end
 
     describe '説明' do
-      context '未入力' do
-        before { base.description = '' }
+      context '256文字の場合' do
+        before { base.description = 'a' * 257 }
         example 'エラーにならないこと' do
           expect(base).to be_valid
         end
       end
-      context '256文字の場合' do
-        before { base.description = 'a' * 257 }
+    end
+
+    describe 'ステータス' do
+      context '未入力の場合' do
+        before { base.status = nil }
+        example 'エラーになること' do
+          expect(base).to be_invalid
+        end
+      end
+    end
+
+    describe '期限' do
+      context '昨日の場合' do
+        before { base.due_date = Date.yesterday }
+        example 'エラーになること' do
+          expect(base).to be_invalid
+        end
+      end
+      context '今日の場合' do
+        before { base.due_date = Date.today }
+        example 'エラーにならないこと' do
+          expect(base).to be_valid
+        end
+      end
+      context '明日の場合' do
+        before { base.due_date = Date.tomorrow }
         example 'エラーにならないこと' do
           expect(base).to be_valid
         end
@@ -97,17 +126,47 @@ RSpec.describe Task, type: :model do
       end
     end
 
-    context '複数条件の指定がある場合' do
-      example 'AND条件になっていること' do
-        task.title = 'jenkins'
-        task.description = 'nothing'
+    context 'ステータス指定がある場合' do
+      example '存在しない場合は空が返る' do
+        task.statuses = [Task.statuses[:done]]
         expect(task.search.size).to eq 0
-        task.description = 'tool'
-        expect(task.search.size).to eq 0
-        task.description = 'are'
-        expect(task.search).to match_array [data2]
+      end
+
+      example '存在する場合は対象レコードが返る' do
+        task.statuses = [Task.statuses[:doing]]
+        expect(task.search).to match_array [data1, data2, data4]
+      end
+
+      example 'IN検索になっていること' do
+        task.statuses = [Task.statuses[:doing],Task.statuses[:todo]]
+        expect(task.search).to match_array [data1, data2, data3, data4]
       end
     end
 
+    context '優先度指定がある場合' do
+      example '存在しない場合は空が返る' do
+        task.priorities = [Task.priorities[:high]]
+        expect(task.search.size).to eq 0
+      end
+
+      example '存在する場合は対象レコードが返る' do
+        task.priorities = [Task.priorities[:normal]]
+        expect(task.search).to match_array [data1, data2, data3]
+      end
+
+      example 'IN検索になっていること' do
+        task.priorities = [Task.priorities[:normal],Task.priorities[:low]]
+        expect(task.search).to match_array [data1, data2, data3, data4]
+      end
+    end
+
+    context '複数条件の指定がある場合' do
+      example 'AND条件になっていること' do
+        cond = create(:base)
+        cond.statuses = [Task.statuses[:doing]]
+        cond.priorities = [Task.priorities[:normal]]
+        expect(cond.search).to match_array [cond]
+      end
+    end
   end
 end

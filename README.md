@@ -815,9 +815,195 @@ task.search
   * `http://localhost:5000/api/tasks?title=jenkins&description=nice' とかで期待通りに帰って来ればOK
 
 
-#### ステータスという項目がtaskモデルにないので追加する
+#### 優先度、ステータス、期限という項目がtaskモデルにないので追加する
 
-* 今ここ！！！！
+* 優先度やステータスについては、値はコードで持たせて、表示する際などは名称を使いたい(つまりコード値の考え方)
+* railsでこれをやる場合は、enumが使えそう
+* ということでそれを踏まえて、やってみる
+
+* `buner g migration AddColumnsToTask priority:integer status:integer due_date:date`でマイグレーションファイル雛形作成
+* マイグレーションファイルを以下のように編集(タイトルとstatusをNotNullに)
+
+```
+class AddColumnsToTask < ActiveRecord::Migration[5.2]
+  def change
+    change_column :tasks, :title, :string, null: false
+    add_column :tasks, :priority, :integer
+    add_column :tasks, :status, :integer, default: 0, null: false
+    add_column :tasks, :due_date, :date
+  end
+end
+```
+* `buner db:migrate:reset`で最初からマイグレーションやり直し(大したデータ入ってないので)
+* 次に、task.rbに以下のようにenumの定義を追加
+
+```
+  enum priority: { normal: 0, low: -1, high: 1 }, _prefix: true
+  enum status: { todo: 0, doing: 1, done: 2 }, _prefix: true
+```
+* 上記をやって、railsコンソールで動きを確認してみる
+
+```
+Task.statuses
+=> {"todo"=>0, "doing"=>1, "done"=>2}
+
+t = Task.new
+irb(main):002:0> t.status
+=> "todo"
+irb(main):003:0> t.status_todo?
+=> true
+irb(main):004:0> t.status_doing?
+=> false
+
+# 値を設定する方法(1)
+irb(main):004:0> t = Task.new(status: :status_doing, priority: :priority_high)
+# 値を設定する方法(2) →　ただし、このタイミングでDBへのsaveが走る模様
+irb(main):004:0> t.status_done!
+
+# 元の値を数値で取得する方法(あまり数値を意識する必要ないのかな？でも画面で10:xxxみたいに出したいときは困るよね)
+irb(main):004:0> t.status_before_type_cast
+```
+
+* ちなみにシステム側で決め打ちできるものなら上記で良いが、例えばRedmineのように利用者側で優先度をカスタマイズしたい場合などはDBに持たす必要あり
+* ちなみに表示されるのは英語になるので、日本語化したい場合は `enum_help` というgemを使うらしい(i18n対応は後ほど)
+
+#### 優先度、ステータス、期限という項目のバリデーションを定義する
+
+* 以下のような方針とする
+  * 優先度とステータスはenumなので、特にチェックしない
+  * 期限は現在日より後ろの場合はNGとする
+* 上記の設定をまずはrspecに書いていく
+* が、その前にFactoryの定義を変えよう!
+
+```
+FactoryBot.define do
+  # nestすることで共通化ができる
+  factory :base, class: 'Task' do
+    title 'This is Title'
+    description 'Description'
+    status :doing
+    priority :normal
+
+    factory :data1, class: 'Task' do
+      title 'Jenkins'
+      description 'Jenkins is cool'
+    end
+    ...
+  end
+end
+```
+
+* 次に追加した項目のバリデータション関連のspecをテストに書いていく
+
+```
+    describe 'ステータス' do
+      context '未入力の場合' do
+        before { base.status = nil }
+        example 'エラーになること' do
+          expect(base).to be_invalid
+        end
+      end
+    end
+
+    describe '期限' do
+      context '昨日の場合' do
+        before { base.due_date = Date.yesterday }
+        example 'エラーになること' do
+          expect(base).to be_invalid
+        end
+      end
+      context '今日の場合' do
+        before { base.due_date = Date.today }
+        example 'エラーにならないこと' do
+          expect(base).to be_valid
+        end
+      end
+      context '明日の場合' do
+        before { base.due_date = Date.tomorrow }
+        example 'エラーにならないこと' do
+          expect(base).to be_valid
+        end
+      end
+    end
+ ```
+
+* 流すとエラーになるので、モデルにバリデーションを追加していく
+
+```
+  validates :status, presence: true
+  validate :not_before_today
+  ...
+  def not_before_today
+    errors.add(:due_date, 'Please set today or after today') if due_date.present? && due_date < Date.today
+  end
+```
+
+#### 優先度、ステータス、期限という項目も検索条件に加えておく
+
+* 期限は使うかわからんので、とりあえず今は優先度とステータスのみを入れる
+* 優先度とステータスはきっと複数選択されることを想定しておく
+* まず、テストを作る
+
+```
+    context 'ステータス指定がある場合' do
+      example '存在しない場合は空が返る' do
+        task.statuses = [Task.statuses[:done]]
+        expect(task.search.size).to eq 0
+      end
+
+      example '存在する場合は対象レコードが返る' do
+        task.statuses = [Task.statuses[:doing]]
+        expect(task.search).to match_array [data1, data2, data4]
+      end
+
+      example 'IN検索になっていること' do
+        task.statuses = [Task.statuses[:doing],Task.statuses[:todo]]
+        expect(task.search).to match_array [data1, data2, data3, data4]
+      end
+    end
+
+    context '優先度指定がある場合' do
+      example '存在しない場合は空が返る' do
+        task.priorities = [Task.priorities[:high]]
+        expect(task.search.size).to eq 0
+      end
+
+      example '存在する場合は対象レコードが返る' do
+        task.priorities = [Task.priorities[:normal]]
+        expect(task.search).to match_array [data1, data2, data3]
+      end
+
+      example 'IN検索になっていること' do
+        task.priorities = [Task.priorities[:normal],Task.priorities[:low]]
+        expect(task.search).to match_array [data1, data2, data3, data4]
+      end
+    end
+```
+* 当然エラーになるので、モデルに以下のような実装を追加
+
+```
+  attr_accessor :statuses, :priorities
+  ...
+  scope :status_in, ->(statuses) { where(status: statuses) if statuses.present?}
+  scope :priority_in, ->(priorities) { where(priority: priorities) if priorities.present?}
+```
+* controllerにpermitの定義を追加
+
+```
+  def task_params
+    params.fetch(:task, {}).permit(:title, :description, :status, :priority)
+  end
+  def search_params
+    params.permit(:title, :description, statuses: [], priorities: [])
+  end
+```
+* json.builderにも出力項目として追加
+
+### そろそろデバッグをしてみよう
+
+* いまここ！！
+  * APIリクエスト起点でデバッグ
+  * Rails consoleからデバッグ 
 
 # tips
 ## rails new の途中でエラーが発生しやり直す場合
@@ -848,3 +1034,4 @@ config.include capybara::dsl
 
 http://o.inchiki.jp/obbr/175
 
+ 
