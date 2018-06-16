@@ -72,6 +72,10 @@
                   <option value="1">着手</option>
                   <option value="2">完了</option>
                 </select>
+                <div class="form-group">
+                  <label for="due-date">期限</label>
+                  <input type="date" class="form-control" id="due-date" v-model="task.due_date">
+                </div>
               </div>
             </form>
             <button class="btn btn-primary pull-right" @click="registerTask">新規登録</button>
@@ -92,18 +96,23 @@ export default {
     return {
       tasklist: [],
       statuses: [],
-      task: {
-        title: '',
-        description: '',
-        status: 0,
-        priority: 0
-      }
-    }
+      task: newTask
   },
   mounted: function() {
     this.fetchTasks()
   },
   methods: {
+    newTask: function() {
+      return {
+        task: {
+          title: '',
+          description: '',
+          status: 0,
+          priority: 0,
+          due_date: ''
+        }
+      }
+    },
     statusGet: function(status) {
       this.statuses.includes(status) || this.statuses.push(status)
       let params = { statuses: this.statuses }
