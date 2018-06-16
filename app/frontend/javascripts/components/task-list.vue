@@ -96,28 +96,25 @@ export default {
     return {
       tasklist: [],
       statuses: [],
-      task: newTask
+      task: {
+        title: '',
+        description: '',
+        status: 0,
+        priority: 0,
+        due_date: ''
+      }
+    }
   },
   mounted: function() {
     this.fetchTasks()
   },
   methods: {
-    newTask: function() {
-      return {
-        task: {
-          title: '',
-          description: '',
-          status: 0,
-          priority: 0,
-          due_date: ''
-        }
-      }
-    },
     statusGet: function(status) {
       this.statuses.includes(status) || this.statuses.push(status)
       let params = { statuses: this.statuses }
       this.fetchTasks(params)
     },
+    // TODO: 登録後にtaskオブジェクトを空に戻す
     registerTask: function() {
       axios.post('/api/tasks', this.task).then(
         response => {
