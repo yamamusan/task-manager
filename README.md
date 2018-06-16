@@ -1151,6 +1151,99 @@ end
 
 * `buner db:seed`を実行し、１０件分のランダムデータを積む
 
+### vuejsでもJQueryを使えるようにする
+
+* モーダルをjavascriptで操作する際にjqueryが使えないときついので、`environment.js`に以下記載を追加することで使えるようになる
+
+```
+const webpack = require('webpack')
+environment.plugins.append(
+  'Provide',
+  new webpack.ProvidePlugin({
+    $: 'jquery',
+    jQuery: 'jquery',
+    Tether: 'tether',
+    'window.Tether': 'tether',
+    Popper: ['popper.js', 'default']
+  })
+)
+```
+
+### モーダルな登録画面を作成しよう
+
+* bootstrapのモーダルを使って子画面を作成する
+* ステータスや優先度は何もしないと文字列型としてPOSTされて、サーバ側でエラーになるの`v-model.number`とすればOK
+
+```
+    <div class="modal fade" id="task-register" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">新しいタスクを作成</h5>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-group">
+                <label for="title">タイトル</label>
+                <input type="text" class="form-control" v-model="task.title" id="title">
+              </div>
+              <div class="form-group">
+                <label for="description">説明</label>
+                <textarea rows="3" class="form-control" v-model="task.description" id="description"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="priority">優先度</label>
+                <select class="custom-select" v-model.number="task.priority" id="priority">
+                  <option value="-1">低</option>
+                  <option value="0" selected>中</option>
+                  <option value="1">高</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="status">ステータス</label>
+                <select class="custom-select" v-model.number="task.status" id="status">
+                  <option value="0" selected>新規</option>
+                  <option value="1">着手</option>
+                  <option value="2">完了</option>
+                </select>
+              </div>
+            </form>
+            <button class="btn btn-primary pull-right" @click="registerTask">新規登録</button>
+          </div>
+        </div>
+      </div>
+    </div>
+```
+
+* javascriptは以下のような感じ
+
+```
+  data() {
+    return {
+      tasklist: [],
+      statuses: [],
+      task: {
+        title: '',
+        description: '',
+        status: 0,
+        priority: 0
+      }
+    }
+  ...
+     registerTask: function() {
+      axios.post('/api/tasks', this.task).then(
+        response => {
+          $('#task-register').modal('hide')
+          this.fetchTasks()
+        },
+        error => {
+          console.log(error)
+        }
+      )
+    },
+ ```
+
+
 ### BootStrapの画面をレスポンシブにする(グリッドシステム)
 
 
