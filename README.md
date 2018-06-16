@@ -687,7 +687,6 @@ end
  config.include FactoryBot::Syntax::Methods
 ```
 
-
 ##### 実践編
 
 * taskモデルに対するテスト
@@ -1001,9 +1000,91 @@ end
 
 ### そろそろデバッグをしてみよう
 
+* Rails Panel(chrome拡張)
+  * Gemfileに `gem 'meta_request'` を追加してbundle install(development)
+  * Chrome拡張をインストール
+  * DevToolを開くと、リクエスト毎のログやSQLなどが見れる。便利！
+* pry-byebug
+  * Gemfileに `gem 'pry-byebug'` を追加してbundle install(development)
+  * break-poingに `binding.pry` というコードを入れる
+  * そこを通過するようなAPIを叩くまたはコンソールからキックする
+  * すると以下のようなコンソールが現れる
+
+```
+21:49:19 web.1       |      8: def index
+21:49:19 web.1       |      9:   condition = Task.new(search_params)
+21:49:19 web.1       |     10:   binding.pry
+21:49:19 web.1       |  => 11:   @tasks = condition.search
+21:49:19 web.1       |     12: end
+```
+  * condtion の中身をみたい場合は以下のように打つ 
+
+```
+condition
+21:49:51 web.1       | => #<Task:0x00007f8972d1f058
+21:49:51 web.1       |  id: nil,
+21:49:51 web.1       |  title: "jenkins",
+21:49:51 web.1       |  description: nil,
+21:49:51 web.1       |  created_at: nil,
+21:49:51 web.1       |  updated_at: nil,
+21:49:51 web.1       |  priority: nil,
+21:49:51 web.1       |  status: "todo",
+21:49:51 web.1       |  due_date: nil>
+```
+
+  * 以下のようなコマンドが使える。finishはメソッドを抜ける感じ
+    * next : 次の行を実行
+    * step : 次の行かメソッド内に入る
+    * continue : プログラムの実行をcontinueしてpryを終了
+    * finish : 現在のフレームが終わるまで実行
+  * 今回はやってないが、~/.pryrcを作成しておくと楽です
+
+```
+if defined?(PryByebug)
+  Pry.commands.alias_command 's', 'step'
+  Pry.commands.alias_command 'n', 'next'
+  Pry.commands.alias_command 'f', 'finish'
+  Pry.commands.alias_command 'c', 'continue'
+end
+```
+
+* Web Console
+  * Railsにデフォルトで入っているみたい
+  * どうやら返すHTMLの中に埋め込むっぽいので、APIアプリだとダメっぽいな・・
+
+* VSCode上でデバッグするには？
+  * まず、Gemfileに以下を追加(developmentでいいかな)し、`budle install`
+
+```
+gem 'ruby-debug-ide'
+gem 'debase'
+```
+  * debugメニューから歯車アイコンを選択して、launch.jsonを以下のように編集
+
+```
+    {
+      "name": "Listen for rdebug-ide2",
+      "type": "Ruby",
+      "request": "attach",
+      "cwd": "${workspaceRoot}",
+      "remoteHost": "127.0.0.1",
+      "remotePort": "1234",
+      "remoteWorkspaceRoot": "${workspaceRoot}",
+    },
+``` 
+  * `bundle exec rdebug-ide --host 127.0.0.1 --port 1234 --dispatcher-port 26162 -- bin/rails s`で実行
+  * デバッガを起動すると、プロセスが先に進み始める
+  * あとは、画面でブレークポイントを仕掛ければOK。なはずだが、なぜかスルーされてしまう・・
+  * ★★★★原因不明。★★★★
+
+
+### 画面とサーバをつないで、APIで一覧データを取得するようにする
+
 * いまここ！！
-  * APIリクエスト起点でデバッグ
-  * Rails consoleからデバッグ 
+
+
+
+### BootStrapの画面をレスポンシブにする(グリッドシステム)
 
 # tips
 ## rails new の途中でエラーが発生しやり直す場合
