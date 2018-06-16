@@ -1117,6 +1117,39 @@ export default {
       const params = { priorities: ['high'] }
       axios.get('/api/tasks', { params: params }).then(
 ```
+* イベントハンドリングのはじめとして、ステータスボタンを押したらそれに絞り込んでみる(もっと良い方法がありそうだが・・・)
+
+```
+  <button type="button" class="btn btn-primary btn-sm" @click="statusGet('todo')">未着手</button>
+  <button type="button" class="btn btn-secondary btn-sm" @click="statusGet('doing')">着手</button>
+  <button type="button" class="btn btn-success btn-sm" @click="statusGet('done')">完了</button>
+...
+  statusGet: function(status){
+    this.tasklist = []
+    this.statuses.includes(status) || this.statuses.push(status)
+    let params = { statuses: this.statuses }
+    this.fetchTasks(params)
+  },
+  fetchTasks: function(params) {
+    axios.get('/api/tasks', {params: params}).then(
+``` 
+
+### 初期データを積んでみよう
+
+* `seeds.rb`を作成.Fakerを使って、ランダムデータを積んでみる
+
+```
+10.times do |_n|
+  title = Faker::Lorem.sentence
+  description = Faker::Lorem.paragraph
+  status = [0, 1, 2].sample
+  priority = [-1, 0, 1].sample
+  Task.create!(title: title, description: description, status: status,
+               priority: priority)
+end
+```
+
+* `buner db:seed`を実行し、１０件分のランダムデータを積む
 
 ### BootStrapの画面をレスポンシブにする(グリッドシステム)
 

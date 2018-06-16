@@ -8,16 +8,17 @@
     </div>
 
     <div class="taskul-title-area">
-      <button type="button" class="btn btn-primary btn-sm">未着手</button>
-      <button type="button" class="btn btn-secondary btn-sm">着手</button>
-      <button type="button" class="btn btn-success btn-sm">完了</button>
+      <!-- TODO: 反転もできるようにしたい -->
+      <button type="button" class="btn btn-primary btn-sm" @click="statusGet('todo')">未着手</button>
+      <button type="button" class="btn btn-secondary btn-sm" @click="statusGet('doing')">着手</button>
+      <button type="button" class="btn btn-success btn-sm" @click="statusGet('done')">完了</button>
       <button type="button" class="btn btn-secondary float-right ">詳細検索</button>
     </div>
 
     <div class="table-responsive">
       <table class="table table-striped">
         <thead>
-          <tr>
+          <tr> 
             <!-- TODO:本当はヘッダをチェクしたら、全体のOn/Offを切り替えたい -->
             <th scope="col"><input type="checkbox" id="checkbox-header" class="styled"></th>
             <th scope="col">タイトル</th>
@@ -50,15 +51,22 @@ export default {
   name: 'tasks',
   data() {
     return {
-      tasklist: []
+      tasklist: [],
+      statuses: []
     }
   },
   mounted: function() {
     this.fetchTasks()
   },
   methods: {
-    fetchTasks: function() {
-      axios.get('/api/tasks').then(
+    statusGet: function(status){
+      this.tasklist = []
+      this.statuses.includes(status) || this.statuses.push(status)
+      let params = { statuses: this.statuses }
+      this.fetchTasks(params)
+    },
+    fetchTasks: function(params) {
+      axios.get('/api/tasks', {params: params}).then(
         response => {
           for (let i = 0; i < response.data.length; i++) {
             this.tasklist.push(response.data[i])
