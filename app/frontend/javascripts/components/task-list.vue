@@ -33,8 +33,8 @@
             <td>{{ task.title }}</td>
             <td>{{ task.priority }}</td>
             <td>{{ task.status }}</td>
-            <td>{{ task.deadline }}</td>
-            <td>{{ task.update_at }}</td>
+            <td>{{ task.due_date }}</td>
+            <td>{{ task.updated_at }}</td>
           </tr>
         </tbody>
       </table>
@@ -44,38 +44,31 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'tasks',
   data() {
     return {
-      // TODO:APIを呼び出してサーバサイドから取得する
-      tasklist: [
-        {
-          id: 1,
-          title: 'XX銀行に振り込みをする',
-          priority: '高',
-          status: '着手',
-          deadline: '2018/10/10'
-        },
-        {
-          id: 2,
-          title: 'タスクの整理を実施する',
-          priority: '高',
-          status: '着手',
-          deadline: '2018/10/10'
-        },
-        {
-          id: 3,
-          title: 'ニトリからの荷物を受け取る',
-          priority: '高',
-          status: '着手',
-          deadline: '2018/10/10'
-        }
-      ],
-      nextId: 3,
-      title: ''
+      tasklist: []
     }
   },
-  methods: {}
+  mounted: function() {
+    this.fetchTasks()
+  },
+  methods: {
+    fetchTasks: function() {
+      axios.get('/api/tasks').then(
+        response => {
+          for (let i = 0; i < response.data.length; i++) {
+            this.tasklist.push(response.data[i])
+          }
+        },
+        error => {
+          console.log(error)
+        }
+      )
+    }
+  }
 }
 </script>

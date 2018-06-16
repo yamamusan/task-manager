@@ -3,7 +3,7 @@
   <!-- 固定ヘッダ -->
   <div class="sticky-top">
     <nav class="navbar navbar-dark navbar-expand-lg taskul-nav-color">
-      <a class="navbar-brand" href="#">Taskul</a>
+      <a class="navbar-brand" href="/">Taskul</a>
 
       <!-- レスポンシブデザイン用に画面サイズが小さくなったらdata-targetのブロックを隠し、右側にメニューを表示する -->
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">

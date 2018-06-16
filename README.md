@@ -1079,12 +1079,53 @@ gem 'debase'
 
 
 ### 画面とサーバをつないで、APIで一覧データを取得するようにする
+  
+* `yarn add axios`でAPI用のライプラリを入手
+*  以下のようにAPI呼び出し
 
-* いまここ！！
+```
+export default {
+  name: 'tasks',
+  data() {
+    return {
+      tasklist: []
+    }
+  },
+  mounted: function() {
+    this.fetchTasks()
+  },
+  methods: {
+    fetchTasks: function() {
+      axios.get('/api/tasks').then(
+        response => {
+          for (let i = 0; i < response.data.length; i++) {
+            this.tasklist.push(response.data[i])
+          }
+        },
+        error => {
+          console.log(error)
+        }
+      )
+    }
+  }
+}
+```
 
+* なお、GETでパラメータを渡す場合は、URLに積む方法と以下のようにあパラメータを引数に渡す方法がある模様
 
+```
+      const params = { priorities: ['high'] }
+      axios.get('/api/tasks', { params: params }).then(
+```
 
 ### BootStrapの画面をレスポンシブにする(グリッドシステム)
+
+
+
+### ransnackを使って、検索機能を置き換えてみよう
+
+
+
 
 # tips
 ## rails new の途中でエラーが発生しやり直す場合
