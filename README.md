@@ -1243,12 +1243,89 @@ environment.plugins.append(
     },
  ```
 
+### 更新画面を実装しよう
+
+* 登録画面と更新画面は中身がほとんど同じなのでコンポーネント化してみよう!
+
+#### コンポーネントの作成
+
+* task-form.vueというファイル名
+* task-list.vueのモーダル部分のコードをコピペ
+* 親側(コンポーネント利用側) で以下のようにインポートする
+
+```
+import TaskForm from './task-form.vue'
+
+export default {
+  name: 'tasks',
+  components: {
+    TaskForm,
+  },
+ ```
+* そうすると以下のようにケバブケースでタグが利用できる
+
+```
+<task-form></task-form>
+```
+
+#### 子コンポーネントにパラメータを渡す
+
+* 子側では、以下のようにprops属性を定義してあげる
+
+```
+export default {
+  name: 'taskform',
+  props: {
+    type: {
+      type: String,
+      required: false
+    }
+  },
+ ```
+* 親側では、以下のように属性に定義してあげればよい(:typeにした場合は、スクリプトの結果を渡せる)
+
+```
+<task-form type="register" @reload="fetchTasks"></task-form>
+```
+
+* 上記のパラメータを使って、以下のように`v-if`で登録・更新モードを切り分ける
+
+```
+ <div v-if="type === 'register'">
+   <h5 class="modal-title">新しいタスクを作成</h5>
+ </div>
+ <div v-else>
+   <h5 class="modal-title">タスクを更新</h5>
+ </div>
+```
+
+#### 子から親のメソッドを呼び出す方法
+
+* 親側では以下のように、カスタムイベント名とそれで呼ばれるメソッド名を定義する
+
+```
+<task-form type="register" @reload="fetchTasks"></task-form>
+```
+* 子側では以下のように、emitでカスタムイベントを発火させてあげる
+
+```
+this.$emit('reload')
+```
+
+#### 更新画面を完成させる
+
+* 長いので`b5a4834` のコミットを参照
+
 
 ### BootStrapの画面をレスポンシブにする(グリッドシステム)
 
-
-
 ### ransnackを使って、検索機能を置き換えてみよう
+
+
+### 更新履歴をみられるようにしよう(has_many)
+
+
+### テーブルじゃなくて、カード表記にしよう
 
 
 
