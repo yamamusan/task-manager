@@ -1,0 +1,12 @@
+<div id="app">
+  <!-- header.vueの中身で置き換わる -->
+  <navbar></navbar>
+  
+  <!-- ここの中身はルーティングによって置き換わる -->
+  <div class="container-fluid">
+    <router-view/>
+  </div>
+</div>
+
+<%= javascript_pack_tag 'application' %>
+<%= stylesheet_pack_tag 'application' %>

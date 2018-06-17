@@ -1,5 +1,11 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
-  scope :api, module: :api do
-    resources :tasks, only: [:index, :show, :create, :update, :destroy]
+  root to: 'home#index'
+  scope :api, module: :api, format: 'json' do
+    resources :tasks, only: %i[index show create update] do
+      delete :index, on: :collection, action: :delete
+    end
   end
+  get '*path', to: 'home#index'
 end

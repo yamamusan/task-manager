@@ -1,16 +1,18 @@
+# frozen_string_literal: true
+
 class Api::TasksController < ApplicationController
-  before_action :set_task, only: [:show, :update, :destroy]
+  before_action :set_task, only: %i[show update destroy]
 
   # GET /tasks
   # GET /tasks.json
   def index
-    @tasks = Task.all
+    condition = Task.new(search_params)
+    @tasks = condition.search
   end
 
   # GET /tasks/1
   # GET /tasks/1.json
-  def show
-  end
+  def show; end
 
   # POST /tasks
   # POST /tasks.json
@@ -34,6 +36,11 @@ class Api::TasksController < ApplicationController
     end
   end
 
+  def delete
+    # TODO: SELECTしてから１件ずつDELETEしているので性能悪そう
+    Task.where(id: params[:ids]).destroy_all
+  end
+
   # DELETE /tasks/1
   # DELETE /tasks/1.json
   def destroy
@@ -41,14 +48,20 @@ class Api::TasksController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_task
-      @task = Task.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def task_params
-      # 許可する項目だけを記載する
-      params.fetch(:task, {}).permit(:title, :description) 
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_task
+    @task = Task.find(params[:id])
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def task_params
+    # 許可する項目だけを記載する
+    params.fetch(:task, {}).permit(:title, :description, :status, :priority, :due_date)
+  end
+
+  def search_params
+    # 許可する項目だけを記載する
+    params.permit(:title, :due_date, :description, statuses: [], priorities: [])
+  end
 end
