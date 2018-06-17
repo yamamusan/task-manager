@@ -7,6 +7,10 @@
       <button class="btn btn-secondary" data-toggle="modal" data-target="#task-register">新規登録</button>
     </div>
 
+    <!-- 登録・更新モーダル -->
+    <task-form type="register" @reload="fetchTasks"></task-form>
+    <task-form type="update" :id="id" @reload="fetchTasks"></task-form>
+
     <div class="taskul-title-area">
       <!-- TODO: 反転もできるようにしたい -->
       <button class="btn btn-primary btn-sm" @click="statusGet('todo')">未着手</button>
@@ -31,7 +35,9 @@
         <tbody>
           <tr v-for="(task, index) in tasklist" v-bind:key="task.id">
             <th scope="row"><input type="checkbox" v-bind:id="'checkbox' +  index" class="styled"></th>
-            <td>{{ task.title }}</td>
+            <td>
+              <a href="#" @click.prevent="openTaskModal(task.id)">{{ task.title }}</a>
+            </td>
             <td>{{ task.priority }}</td>
             <td>{{ task.status }}</td>
             <td>{{ task.due_date }}</td>
@@ -41,62 +47,25 @@
       </table>
     </div>
 
-    <div class="modal fade" id="task-register" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">新しいタスクを作成</h5>
-          </div>
-          <div class="modal-body">
-            <form>
-              <div class="form-group">
-                <label for="title">タイトル</label>
-                <input type="text" class="form-control" v-model="task.title" id="title">
-              </div>
-              <div class="form-group">
-                <label for="description">説明</label>
-                <textarea rows="3" class="form-control" v-model="task.description" id="description"></textarea>
-              </div>
-              <div class="form-group">
-                <label for="priority">優先度</label>
-                <select class="custom-select" v-model.number="task.priority" id="priority">
-                  <option value="-1">低</option>
-                  <option value="0" selected>中</option>
-                  <option value="1">高</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="status">ステータス</label>
-                <select class="custom-select" v-model.number="task.status" id="status">
-                  <option value="0" selected>新規</option>
-                  <option value="1">着手</option>
-                  <option value="2">完了</option>
-                </select>
-                <div class="form-group">
-                  <label for="due-date">期限</label>
-                  <input type="date" class="form-control" id="due-date" v-model="task.due_date">
-                </div>
-              </div>
-            </form>
-            <button class="btn btn-primary pull-right" @click="registerTask">新規登録</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 </template>
 
 <script>
 import axios from 'axios'
+import TaskForm from './task-form.vue'
 
 export default {
   name: 'tasks',
+  components: {
+    TaskForm
+  },
   data() {
     return {
       tasklist: [],
       statuses: [],
+      id: 0,
       task: {
+        id: '',
         title: '',
         description: '',
         status: 0,
@@ -114,18 +83,6 @@ export default {
       let params = { statuses: this.statuses }
       this.fetchTasks(params)
     },
-    // TODO: 登録後にtaskオブジェクトを空に戻す
-    registerTask: function() {
-      axios.post('/api/tasks', this.task).then(
-        response => {
-          $('#task-register').modal('hide')
-          this.fetchTasks()
-        },
-        error => {
-          console.log(error)
-        }
-      )
-    },
     fetchTasks: function(params) {
       this.tasklist = []
       axios.get('/api/tasks', { params: params }).then(
@@ -138,6 +95,10 @@ export default {
           console.log(error)
         }
       )
+    },
+    openTaskModal: function(id) {
+      this.id = id
+      $('#task-update').modal('show')
     }
   }
 }
