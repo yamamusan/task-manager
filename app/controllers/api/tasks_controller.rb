@@ -36,6 +36,11 @@ class Api::TasksController < ApplicationController
     end
   end
 
+  def delete
+    # TODO: SELECTしてから１件ずつDELETEしているので性能悪そう
+    Task.where(id: params[:ids]).destroy_all
+  end
+
   # DELETE /tasks/1
   # DELETE /tasks/1.json
   def destroy

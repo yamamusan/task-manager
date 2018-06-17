@@ -1316,6 +1316,29 @@ this.$emit('reload')
 
 * 長いので`b5a4834` のコミットを参照
 
+### 削除機能の実装
+
+* 一括チェックするjavascriptの実装
+
+```
+  checkAll: function() {
+    $('.checkbox-list').prop('checked', $('#checkbox-header').prop('checked'))
+  }
+```
+
+* 削除APIの呼び出し
+  * routingをどうするか？一旦DELETEのコレクションリソースを追加　
+
+```
+  scope :api, module: :api, format: 'json' do
+    resources :tasks, only: %i[index show create update] do
+      delete :index, on: :collection, action: :delete
+    end
+  end
+ ```
+ *　あとは、Controllerに削除アクションを追加して、javascriptでチェックされたID配列を送ってあげればOK
+
+
 
 ### BootStrapの画面をレスポンシブにする(グリッドシステム)
 
