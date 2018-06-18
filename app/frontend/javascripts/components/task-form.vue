@@ -46,10 +46,10 @@
             </form>
 
             <div v-if="type === 'register'">
-              <button class="btn btn-primary pull-right" @click="registerTask">新規登録</button>
+              <button id="register-btn" class="btn btn-primary pull-right" @click="registerTask">新規登録</button>
             </div>
             <div v-else>
-              <button class="btn btn-primary pull-right" @click="updateTask">更新</button>
+              <button id="update-btn" class="btn btn-primary pull-right" @click="updateTask">更新</button>
             </div>
 
           </div>
