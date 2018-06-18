@@ -17,7 +17,7 @@
       <button class="btn btn-warning btn-sm" @click="statusGet('doing')">着手</button>
       <button class="btn btn-success btn-sm" @click="statusGet('done')">完了</button>
       <button class="btn btn-secondary pull-right mr-2 mb-2">詳細検索</button>
-      <button class="btn btn-danger pull-right mr-2 mb-2" @click="deleteTasks">削除</button>
+      <button class="btn btn-danger pull-right mr-2 mb-2" @click="deleteTasks" id="delete-btn">削除</button>
     </div>
 
     <div class="table-responsive">
@@ -36,15 +36,13 @@
         </thead>
         <tbody>
           <tr v-for="(task) in tasklist" v-bind:key="task.id">
-            <th scope="row"><input type="checkbox" :id="'checkbox' + task.id" :data-id="task.id" class="styled checkbox-list"></th>
-            <td>{{ task.id }}</td>
-            <td>
-              <a href="#" @click.prevent="openTaskModal(task.id)">{{ task.title }}</a>
-            </td>
-            <td>{{ task.priority }}</td>
-            <td>{{ task.status }}</td>
-            <td>{{ task.due_date }}</td>
-            <td>{{ task.updated_at }}</td>
+            <th scope="row"><input type="checkbox" :id="'checkbox-' + task.id" :data-id="task.id" class="styled checkbox-list"></th>
+            <td :id="'id-' + task.id">{{ task.id }}</td>
+            <td :id="'title-' + task.id"><a href="#" @click.prevent="openTaskModal(task.id)">{{ task.title }}</a></td>
+            <td :id="'priority-' + task.id">{{ task.priority }}</td>
+            <td :id="'status-' + task.id">{{ task.status }}</td>
+            <td :id="'due_date-' + task.id" >{{ task.due_date }}</td>
+            <td :id="'updated_at-' + task.id">{{ task.updated_at }}</td>
           </tr>
         </tbody>
       </table>
