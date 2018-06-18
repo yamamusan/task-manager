@@ -9,7 +9,7 @@
 
     <!-- 登録・更新モーダル -->
     <task-form type="register" @reload="fetchTasks"></task-form>
-    <task-form type="update" :id="id" @reload="fetchTasks"></task-form>
+    <task-form type="update" @reload="fetchTasks" ref="updateModal"></task-form>
 
     <div class="taskul-title-area">
       <!-- TODO: 反転もできるようにしたい -->
@@ -116,7 +116,7 @@ export default {
       )
     },
     openTaskModal: function(id) {
-      this.id = id
+      this.$refs.updateModal.openModal(id)
       $('#task-update').modal('show')
     },
     checkAll: function() {

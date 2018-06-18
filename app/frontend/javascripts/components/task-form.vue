@@ -66,12 +66,12 @@ import axios from 'axios'
 export default {
   name: 'taskform',
   props: {
-    type: { type: String, required: true },
-    id: { type: Number, required: false }
+    type: { type: String, required: true }
   },
   data() {
     return {
       task: {
+        id: 0,
         title: '',
         description: '',
         status: 0,
@@ -82,7 +82,8 @@ export default {
   },
   mounted: function() {
     if (this.type === 'update') {
-      $('#task-update').on('shown.bs.modal', this.openModal)
+      // モーダルイベントにフックする場合はこちら
+      // $('#task-update').on('shown.bs.modal', this.openModal)
       $('#task-update').on('hide.bs.modal', this.closeModal)
     }
   },
@@ -102,9 +103,9 @@ export default {
       )
     },
     updateTask: function() {
-      alert('更新しました')
-      axios.patch(`/api/tasks/${this.id}`, this.task).then(
+      axios.patch(`/api/tasks/${this.task.id}`, this.task).then(
         response => {
+          alert('更新しました')
           $('#task-update').modal('hide')
           this.$emit('reload')
           Object.assign(this.$data, this.$options.data())
@@ -115,10 +116,12 @@ export default {
       )
     },
     // TODO: ステータスとかの値をセットする
-    openModal: function() {
-      axios.get(`/api/tasks/${this.id}`).then(
+    openModal: function(id) {
+      this.task.id = id
+      axios.get(`/api/tasks/${id}`).then(
         response => {
           this.task = response.data
+          $('#task-update').modal('show')
         },
         error => {
           console.log(error)

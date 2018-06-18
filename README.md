@@ -1312,6 +1312,22 @@ export default {
 this.$emit('reload')
 ```
 
+#### 親から子のメソッドを呼び出す方法
+
+* 親側では以下のように、コンポーネントのオブジェクトを特定する名前(ref)をつける
+
+```
+<task-form type="update" @reload="fetchTasks" ref="updatemodal"></task-form>
+```
+* 親側で以下のようにrefを特定して、そこから子のメソッドを呼んであげればOK
+
+```
+openTaskModal: function(id) {
+  this.$refs.updatemodal.openModal(id)
+  $('#task-update').modal('show')
+},
+```
+
 #### 更新画面を完成させる
 
 * 長いので`b5a4834` のコミットを参照
@@ -1338,6 +1354,13 @@ this.$emit('reload')
  ```
  *　あとは、Controllerに削除アクションを追加して、javascriptでチェックされたID配列を送ってあげればOK
 
+### FeatureSpecを更新しましょう！！
+
+* ⭐️今ここ！！！
+* 多分動かなくなってるので。。
+
+
+### Slotを使って汎用モーダルを作ろう　
 
 
 ### BootStrapの画面をレスポンシブにする(グリッドシステム)
@@ -1350,6 +1373,7 @@ this.$emit('reload')
 
 ### テーブルじゃなくて、カード表記にしよう
 
+### 
 
 
 
