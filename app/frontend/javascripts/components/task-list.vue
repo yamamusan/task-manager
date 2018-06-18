@@ -117,7 +117,6 @@ export default {
     },
     openTaskModal: function(id) {
       this.$refs.updateModal.openModal(id)
-      $('#task-update').modal('show')
     },
     checkAll: function() {
       $('.checkbox-list').prop('checked', $('#checkbox-header').prop('checked'))
